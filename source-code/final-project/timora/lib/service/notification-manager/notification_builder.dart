@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timora/service/notification_manager.dart';
+import 'package:timora/service/notification-manager/notification_manager.dart';
 import 'package:timora/model/notification_model.dart';
 
 /// Creates and configures notifications using a fluent API.

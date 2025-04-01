@@ -7,7 +7,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timora/core/constants/notification_constants.dart';
 import 'package:timora/model/notification_model.dart';
-import 'package:timora/service/notification_builder.dart';
+import 'package:timora/service/notification-manager/notification_builder.dart';
 
 /// Callback handler for notification actions when app is in background.
 @pragma('vm:entry-point')
