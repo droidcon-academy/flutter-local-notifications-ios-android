@@ -12,6 +12,7 @@ class NotificationActionIds {
   static const String dismiss = 'dismiss';
   static const String complete = 'complete';
   static const String view = 'view';
+  static const String reply = 'reply';
 }
 
 /// Notification group IDs
@@ -58,4 +59,5 @@ class NotificationResources {
 class NotificationActionTexts {
   static const String snooze = 'Snooze';
   static const String dismiss = 'Dismiss';
+  static const String reply = 'Reply';
 }

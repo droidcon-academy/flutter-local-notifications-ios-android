@@ -95,17 +95,8 @@ class NotificationBuilder {
 
   /// Adds interactive action buttons to the notification.
   ///
-  /// The buttons appear at the bottom of the expanded notification and can
-  /// trigger different responses when tapped.
-  ///
-  /// [actionLabels] Text labels for each action button
-  ///
-  /// Throws an [ArgumentError] if the actionLabels list is empty.
-  NotificationBuilder setActions(List<String> actionLabels) {
-    if (actionLabels.isEmpty) {
-      throw ArgumentError('Action labels list cannot be empty');
-    }
-    _model = _model.copyWith(hasActions: true, actionLabels: actionLabels);
+  NotificationBuilder setActions() {
+    _model = _model.copyWith(hasActions: true);
     return this;
   }
 

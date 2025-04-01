@@ -156,7 +156,7 @@ class CreateNotificationController extends ValueNotifier<NotificationFormData> {
     }
 
     if (value.hasActions) {
-      builder = builder.setActions(['Snooze', 'Dismiss']);
+      builder = builder.setActions();
     }
 
     // Configure based on type

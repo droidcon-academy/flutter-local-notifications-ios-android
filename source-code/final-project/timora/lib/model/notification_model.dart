@@ -17,7 +17,6 @@ class NotificationModel {
   final int? occurrenceCount;
   final bool isFullScreen;
   final bool hasActions;
-  final List<String>? actionLabels;
   final Uint8List? imageBytes;
   final int? maxProgress;
   final int? currentProgress;
@@ -39,7 +38,6 @@ class NotificationModel {
     this.occurrenceCount,
     this.isFullScreen = false,
     this.hasActions = false,
-    this.actionLabels,
     this.imageBytes,
     this.maxProgress,
     this.currentProgress,
@@ -63,7 +61,6 @@ class NotificationModel {
     int? occurrenceCount,
     bool? isFullScreen,
     bool? hasActions,
-    List<String>? actionLabels,
     Uint8List? imageBytes,
     int? maxProgress,
     int? currentProgress,
@@ -85,7 +82,6 @@ class NotificationModel {
       occurrenceCount: occurrenceCount ?? this.occurrenceCount,
       isFullScreen: isFullScreen ?? this.isFullScreen,
       hasActions: hasActions ?? this.hasActions,
-      actionLabels: actionLabels ?? this.actionLabels,
       imageBytes: imageBytes ?? this.imageBytes,
       maxProgress: maxProgress ?? this.maxProgress,
       currentProgress: currentProgress ?? this.currentProgress,
@@ -113,7 +109,6 @@ class NotificationModel {
     'occurrenceCount': occurrenceCount,
     'isFullScreen': isFullScreen,
     'hasActions': hasActions,
-    'actionLabels': actionLabels,
     'imageBytes': imageBytes != null ? base64Encode(imageBytes!) : null,
     'maxProgress': maxProgress,
     'currentProgress': currentProgress,
@@ -155,7 +150,6 @@ class NotificationModel {
       occurrenceCount: json['occurrenceCount'] as int?,
       isFullScreen: json['isFullScreen'] as bool? ?? false,
       hasActions: json['hasActions'] as bool? ?? false,
-      actionLabels: (json['actionLabels'] as List<dynamic>?)?.cast<String>(),
       imageBytes:
           json['imageBytes'] != null
               ? base64Decode(json['imageBytes'] as String)

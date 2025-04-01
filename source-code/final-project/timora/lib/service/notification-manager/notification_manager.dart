@@ -87,9 +87,15 @@ class NotificationManager {
       NotificationActionTexts.dismiss,
       options: {DarwinNotificationActionOption.foreground},
     );
+    final replyAction = DarwinNotificationAction.text(
+      NotificationActionIds.reply,
+      NotificationActionTexts.reply,
+      buttonTitle: NotificationActionTexts.reply,
+    );
+
     final interactiveCategory = DarwinNotificationCategory(
       NotificationCategories.interactive,
-      actions: [snoozeAction, dismissAction],
+      actions: [snoozeAction, dismissAction, replyAction],
     );
 
     final iosSettings = DarwinInitializationSettings(
@@ -247,7 +253,6 @@ class NotificationManager {
     bool isFullScreen = false,
     Uint8List? imageBytes,
     bool hasActions = false,
-    List<String>? actionLabels,
   }) {
     // Configure Android specific details
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
@@ -267,15 +272,25 @@ class NotificationManager {
               )
               : null,
       actions:
-          hasActions && actionLabels != null
-              ? actionLabels
-                  .map(
-                    (label) => AndroidNotificationAction(
-                      label.toLowerCase().replaceAll(' ', '_'),
-                      label,
+          hasActions
+              ? [
+                ...['Snooze', 'Dismiss'].map(
+                  (label) => AndroidNotificationAction(
+                    label.toLowerCase().replaceAll(' ', '_'),
+                    label,
+                  ),
+                ),
+                const AndroidNotificationAction(
+                  NotificationActionIds.reply,
+                  NotificationActionTexts.reply,
+                  inputs: [
+                    AndroidNotificationActionInput(
+                      label: NotificationActionTexts.reply,
+                      allowFreeFormInput: true,
                     ),
-                  )
-                  .toList()
+                  ],
+                ),
+              ]
               : null,
     );
 
@@ -318,7 +333,6 @@ class NotificationManager {
       isFullScreen: model.isFullScreen,
       imageBytes: model.imageBytes,
       hasActions: model.hasActions,
-      actionLabels: model.actionLabels,
     );
 
     await _flutterLocalNotificationsPlugin.show(
@@ -369,7 +383,6 @@ class NotificationManager {
       isFullScreen: model.isFullScreen,
       imageBytes: model.imageBytes,
       hasActions: model.hasActions,
-      actionLabels: model.actionLabels,
     );
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -418,7 +431,6 @@ class NotificationManager {
       isFullScreen: model.isFullScreen,
       imageBytes: model.imageBytes,
       hasActions: model.hasActions,
-      actionLabels: model.actionLabels,
     );
 
     // For daily/weekly notifications with a specific time, use zonedSchedule with matchDateTimeComponents
