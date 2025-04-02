@@ -23,6 +23,7 @@ class NotificationModel {
   final String? groupKey;
   final NotificationLevel level;
   final bool customSound;
+  final String? deepLink;
 
   const NotificationModel({
     required this.id,
@@ -45,6 +46,7 @@ class NotificationModel {
     this.groupKey,
     this.level = NotificationLevel.normal,
     this.customSound = false,
+    this.deepLink,
   });
 
   /// Create a copy of this notification with updated values
@@ -69,6 +71,7 @@ class NotificationModel {
     String? groupKey,
     NotificationLevel? level,
     bool? customSound,
+    String? deepLink,
   }) {
     return NotificationModel(
       id: id ?? this.id,
@@ -91,6 +94,7 @@ class NotificationModel {
       groupKey: groupKey ?? this.groupKey,
       level: level ?? this.level,
       customSound: customSound ?? this.customSound,
+      deepLink: deepLink ?? this.deepLink,
     );
   }
 
@@ -112,13 +116,15 @@ class NotificationModel {
     'occurrenceCount': occurrenceCount,
     'isFullScreen': isFullScreen,
     'hasActions': hasActions,
-    'imageBytes': imageAttachment,
+    'imageAttachment':
+        imageAttachment, // Changed from 'imageBytes' to 'imageAttachment' to match property name
     'maxProgress': maxProgress,
     'currentProgress': currentProgress,
     'payload': payload,
     'groupKey': groupKey,
     'level': level.name,
     'customSound': customSound,
+    'deepLink': deepLink,
   };
 
   /// Create from JSON (payload)
@@ -166,6 +172,7 @@ class NotificationModel {
               )
               : NotificationLevel.normal,
       customSound: json['customSound'] as bool? ?? false,
+      deepLink: json['deepLink'] as String?,
     );
   }
 

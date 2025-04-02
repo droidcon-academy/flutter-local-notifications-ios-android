@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timora/core/util/notification_deeplink_util.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
 import 'package:timora/model/notification_model.dart';
 
@@ -89,6 +90,28 @@ class NotificationBuilder {
   ///
   NotificationBuilder setActions() {
     _model = _model.copyWith(hasActions: true);
+    return this;
+  }
+
+  /// Sets a custom deeplink for the notification.
+  ///
+  /// This allows specifying a custom URI that will be opened when the notification is tapped.
+  /// If not set, a default deeplink to the notification details page will be generated.
+  ///
+  /// [deepLink] The URI string to open when the notification is tapped
+  NotificationBuilder setDeepLink(String deepLink) {
+    _model = _model.copyWith(deepLink: deepLink);
+    return this;
+  }
+
+  /// Sets a default deeplink to the notification details page.
+  ///
+  /// This is a convenience method that generates a deeplink to the notification details page
+  /// using the notification ID.
+  NotificationBuilder setDefaultDeepLink() {
+    final deepLink =
+        NotificationDeepLinkUtil.generateNotificationDetailsDeepLink(_model.id);
+    _model = _model.copyWith(deepLink: deepLink);
     return this;
   }
 

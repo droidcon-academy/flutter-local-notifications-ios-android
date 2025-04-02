@@ -8,6 +8,10 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timora/core/constants/notification_constants.dart';
+import 'package:timora/core/router/app_router.dart';
+import 'package:timora/core/router/app_routes_enum.dart';
+import 'package:timora/core/util/deeplink_handler_util.dart';
+import 'package:timora/core/util/notification_deeplink_util.dart';
 import 'package:timora/core/util/notification_util.dart';
 import 'package:timora/model/notification_model.dart';
 import 'package:timora/service/notification-manager/notification_builder.dart';
@@ -24,6 +28,37 @@ void notificationTapBackground(NotificationResponse notificationResponse) {
     debugPrint(
       'notification action tapped with input: ${notificationResponse.input}',
     );
+  }
+
+  // Handle notification tap by navigating to the appropriate screen
+  if (notificationResponse.payload != null) {
+    try {
+      final notificationModel = NotificationModel.fromPayload(
+        notificationResponse.payload!,
+      );
+
+      // If the notification has a deeplink, use it
+      if (notificationModel.deepLink != null) {
+        debugPrint(
+          'Notification tapped with deeplink: ${notificationModel.deepLink}',
+        );
+        // Use the DeepLinkHandler to process the deeplink
+        DeepLinkHandler.instance.handleNotificationDeeplink(
+          notificationModel.deepLink,
+        );
+      } else {
+        // Fallback to direct navigation if no deeplink is provided
+        debugPrint(
+          'Notification tapped without deeplink, using ID: ${notificationModel.id}',
+        );
+        AppRouter.navigateTo(
+          AppRoutes.notificationDetails.value,
+          arguments: notificationModel.id,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error processing notification payload: $e');
+    }
   }
 }
 
@@ -415,21 +450,32 @@ class NotificationManager {
       return;
     }
 
+    // Add deeplink to the notification if not already set
+    final notificationWithDeepLink =
+        model.deepLink == null
+            ? model.copyWith(
+              deepLink:
+                  NotificationDeepLinkUtil.generateNotificationDetailsDeepLink(
+                    model.id,
+                  ),
+            )
+            : model;
+
     final details = await getNotificationDetailsConfig(
-      channelId: model.channelId,
-      level: model.level,
-      isFullScreen: model.isFullScreen,
-      imageAttachment: model.imageAttachment,
-      hasActions: model.hasActions,
-      customSound: model.customSound,
+      channelId: notificationWithDeepLink.channelId,
+      level: notificationWithDeepLink.level,
+      isFullScreen: notificationWithDeepLink.isFullScreen,
+      imageAttachment: notificationWithDeepLink.imageAttachment,
+      hasActions: notificationWithDeepLink.hasActions,
+      customSound: notificationWithDeepLink.customSound,
     );
 
     await _flutterLocalNotificationsPlugin.show(
-      model.id,
-      model.title,
-      model.body,
+      notificationWithDeepLink.id,
+      notificationWithDeepLink.title,
+      notificationWithDeepLink.body,
       details,
-      payload: model.toPayload(),
+      payload: notificationWithDeepLink.toPayload(),
     );
   }
 
@@ -461,30 +507,41 @@ class NotificationManager {
       );
     }
 
+    // Add deeplink to the notification if not already set
+    final notificationWithDeepLink =
+        model.deepLink == null
+            ? model.copyWith(
+              deepLink:
+                  NotificationDeepLinkUtil.generateNotificationDetailsDeepLink(
+                    model.id,
+                  ),
+            )
+            : model;
+
     final tz.TZDateTime scheduledDate = tz.TZDateTime.from(
-      model.scheduledTime!,
+      notificationWithDeepLink.scheduledTime!,
       tz.local,
     );
 
     final details = await getNotificationDetailsConfig(
-      channelId: model.channelId,
-      level: model.level,
-      isFullScreen: model.isFullScreen,
-      imageAttachment: model.imageAttachment,
-      hasActions: model.hasActions,
-      customSound: model.customSound,
+      channelId: notificationWithDeepLink.channelId,
+      level: notificationWithDeepLink.level,
+      isFullScreen: notificationWithDeepLink.isFullScreen,
+      imageAttachment: notificationWithDeepLink.imageAttachment,
+      hasActions: notificationWithDeepLink.hasActions,
+      customSound: notificationWithDeepLink.customSound,
     );
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      model.id,
-      model.title,
-      model.body,
+      notificationWithDeepLink.id,
+      notificationWithDeepLink.title,
+      notificationWithDeepLink.body,
       scheduledDate,
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.wallClockTime,
-      payload: model.toPayload(),
+      payload: notificationWithDeepLink.toPayload(),
     );
   }
 
@@ -515,28 +572,39 @@ class NotificationManager {
       );
     }
 
+    // Add deeplink to the notification if not already set
+    final notificationWithDeepLink =
+        model.deepLink == null
+            ? model.copyWith(
+              deepLink:
+                  NotificationDeepLinkUtil.generateNotificationDetailsDeepLink(
+                    model.id,
+                  ),
+            )
+            : model;
+
     final details = await getNotificationDetailsConfig(
-      channelId: model.channelId,
-      level: model.level,
-      isFullScreen: model.isFullScreen,
-      imageAttachment: model.imageAttachment,
-      hasActions: model.hasActions,
-      customSound: model.customSound,
+      channelId: notificationWithDeepLink.channelId,
+      level: notificationWithDeepLink.level,
+      isFullScreen: notificationWithDeepLink.isFullScreen,
+      imageAttachment: notificationWithDeepLink.imageAttachment,
+      hasActions: notificationWithDeepLink.hasActions,
+      customSound: notificationWithDeepLink.customSound,
     );
 
     // For daily/weekly notifications with a specific time, use zonedSchedule with matchDateTimeComponents
-    if (_shouldUseZonedSchedule(model)) {
-      await _scheduleRecurringAtTime(model, details);
+    if (_shouldUseZonedSchedule(notificationWithDeepLink)) {
+      await _scheduleRecurringAtTime(notificationWithDeepLink, details);
     } else {
       // For simpler repeating notifications without specific time requirements
       await _flutterLocalNotificationsPlugin.periodicallyShow(
-        model.id,
-        model.title,
-        model.body,
-        model.repeatInterval!,
+        notificationWithDeepLink.id,
+        notificationWithDeepLink.title,
+        notificationWithDeepLink.body,
+        notificationWithDeepLink.repeatInterval!,
         details,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: model.toPayload(),
+        payload: notificationWithDeepLink.toPayload(),
       );
     }
   }
