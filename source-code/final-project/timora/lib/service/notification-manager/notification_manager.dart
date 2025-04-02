@@ -1,11 +1,14 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timora/core/constants/notification_constants.dart';
+import 'package:timora/core/util/notification_util.dart';
 import 'package:timora/model/notification_model.dart';
 import 'package:timora/service/notification-manager/notification_builder.dart';
 
@@ -130,33 +133,72 @@ class NotificationManager {
             >();
     if (plugin == null) return;
 
-    // Work channel
+    // Create standard and custom sound channels for each category
+    await _createChannelPair(
+      plugin,
+      standardId: NotificationChannelIds.work,
+      standardName: NotificationChannelDetails.workName,
+      standardDesc: NotificationChannelDetails.workDescription,
+      soundId: NotificationChannelIds.workSound,
+      soundName: NotificationChannelDetails.workSoundName,
+      soundDesc: NotificationChannelDetails.workSoundDescription,
+      importance: Importance.high,
+    );
+
+    await _createChannelPair(
+      plugin,
+      standardId: NotificationChannelIds.personal,
+      standardName: NotificationChannelDetails.personalName,
+      standardDesc: NotificationChannelDetails.personalDescription,
+      soundId: NotificationChannelIds.personalSound,
+      soundName: NotificationChannelDetails.personalSoundName,
+      soundDesc: NotificationChannelDetails.personalSoundDescription,
+      importance: Importance.defaultImportance,
+    );
+
+    await _createChannelPair(
+      plugin,
+      standardId: NotificationChannelIds.health,
+      standardName: NotificationChannelDetails.healthName,
+      standardDesc: NotificationChannelDetails.healthDescription,
+      soundId: NotificationChannelIds.healthSound,
+      soundName: NotificationChannelDetails.healthSoundName,
+      soundDesc: NotificationChannelDetails.healthSoundDescription,
+      importance: Importance.high,
+    );
+  }
+
+  /// Helper method to create a pair of notification channels (standard and custom sound)
+  Future<void> _createChannelPair(
+    AndroidFlutterLocalNotificationsPlugin plugin, {
+    required String standardId,
+    required String standardName,
+    required String standardDesc,
+    required String soundId,
+    required String soundName,
+    required String soundDesc,
+    required Importance importance,
+  }) async {
+    // Standard channel
     await plugin.createNotificationChannel(
-      const AndroidNotificationChannel(
-        NotificationChannelIds.work,
-        NotificationChannelDetails.workName,
-        description: NotificationChannelDetails.workDescription,
-        importance: Importance.high,
+      AndroidNotificationChannel(
+        standardId,
+        standardName,
+        description: standardDesc,
+        importance: importance,
       ),
     );
 
-    // Personal channel
+    // Channel with custom sound
     await plugin.createNotificationChannel(
-      const AndroidNotificationChannel(
-        NotificationChannelIds.personal,
-        NotificationChannelDetails.personalName,
-        description: NotificationChannelDetails.personalDescription,
-        importance: Importance.defaultImportance,
-      ),
-    );
-
-    // Health channel
-    await plugin.createNotificationChannel(
-      const AndroidNotificationChannel(
-        NotificationChannelIds.health,
-        NotificationChannelDetails.healthName,
-        description: NotificationChannelDetails.healthDescription,
-        importance: Importance.high,
+      AndroidNotificationChannel(
+        soundId,
+        soundName,
+        description: soundDesc,
+        importance: importance,
+        sound: const RawResourceAndroidNotificationSound(
+          NotificationResources.customSoundAndroid,
+        ),
       ),
     );
   }
@@ -247,17 +289,35 @@ class NotificationManager {
   /// [imageBytes] Optional image to display in the notification
   /// [hasActions] Whether the notification includes interactive actions
   /// [actionLabels] Labels for notification action buttons
-  NotificationDetails getNotificationDetailsConfig({
+  Future<NotificationDetails> getNotificationDetailsConfig({
     required String channelId,
     required NotificationLevel level,
     bool isFullScreen = false,
-    Uint8List? imageBytes,
+    bool imageAttachment = false,
     bool hasActions = false,
-  }) {
+    bool customSound = false,
+  }) async {
+    final Uint8List imageBytes = base64Decode(
+      NotificationUtils.sampleImageBase64,
+    );
+
+    // Get the temporary directory using path_provider
+    final Directory tempDir = await getTemporaryDirectory();
+    final String filePath = '${tempDir.path}/notification_image.png';
+    final File imageFile = File(filePath);
+
+    // Only write the file if it doesn't already exist
+    if (!await imageFile.exists()) {
+      await imageFile.writeAsBytes(imageBytes);
+    }
+
+    // Get the appropriate channel ID based on customSound flag
+    final effectiveChannelId = _getEffectiveChannelId(channelId, customSound);
+
     // Configure Android specific details
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelId.toUpperCase(),
+      effectiveChannelId,
+      effectiveChannelId.toUpperCase(),
       importance: level.importance,
       priority: level.priority,
       playSound: level.playSound,
@@ -265,7 +325,7 @@ class NotificationManager {
       visibility: level.visibility,
       fullScreenIntent: isFullScreen,
       styleInformation:
-          imageBytes != null
+          imageAttachment
               ? BigPictureStyleInformation(
                 ByteArrayAndroidBitmap(imageBytes),
                 largeIcon: ByteArrayAndroidBitmap(imageBytes),
@@ -301,13 +361,41 @@ class NotificationManager {
       presentAlert: true,
       presentBadge: true,
       presentSound: level.playSound,
+      sound: customSound ? NotificationResources.customSoundIOS : null,
       attachments:
-          imageBytes != null
-              ? [DarwinNotificationAttachment('image.jpg')]
+          imageAttachment
+              ? [
+                DarwinNotificationAttachment(
+                  filePath,
+                  thumbnailClippingRect:
+                      const DarwinNotificationAttachmentThumbnailClippingRect(
+                        x: 0.0,
+                        y: 0.0,
+                        width: 0.3,
+                        height: 0.3,
+                      ),
+                ),
+              ]
               : null,
     );
 
     return NotificationDetails(android: androidDetails, iOS: iosDetails);
+  }
+
+  /// Helper method to get the appropriate channel ID based on custom sound flag
+  String _getEffectiveChannelId(String channelId, bool customSound) {
+    if (!Platform.isAndroid || !customSound) {
+      return channelId;
+    }
+
+    // Map of standard channels to their sound-enabled counterparts
+    const channelMap = {
+      NotificationChannelIds.work: NotificationChannelIds.workSound,
+      NotificationChannelIds.personal: NotificationChannelIds.personalSound,
+      NotificationChannelIds.health: NotificationChannelIds.healthSound,
+    };
+
+    return channelMap[channelId] ?? channelId;
   }
 
   //----------------------------------------------------------------------------
@@ -327,12 +415,13 @@ class NotificationManager {
       return;
     }
 
-    final details = getNotificationDetailsConfig(
+    final details = await getNotificationDetailsConfig(
       channelId: model.channelId,
       level: model.level,
       isFullScreen: model.isFullScreen,
-      imageBytes: model.imageBytes,
+      imageAttachment: model.imageAttachment,
       hasActions: model.hasActions,
+      customSound: model.customSound,
     );
 
     await _flutterLocalNotificationsPlugin.show(
@@ -377,12 +466,13 @@ class NotificationManager {
       tz.local,
     );
 
-    final details = getNotificationDetailsConfig(
+    final details = await getNotificationDetailsConfig(
       channelId: model.channelId,
       level: model.level,
       isFullScreen: model.isFullScreen,
-      imageBytes: model.imageBytes,
+      imageAttachment: model.imageAttachment,
       hasActions: model.hasActions,
+      customSound: model.customSound,
     );
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -425,12 +515,13 @@ class NotificationManager {
       );
     }
 
-    final details = getNotificationDetailsConfig(
+    final details = await getNotificationDetailsConfig(
       channelId: model.channelId,
       level: model.level,
       isFullScreen: model.isFullScreen,
-      imageBytes: model.imageBytes,
+      imageAttachment: model.imageAttachment,
       hasActions: model.hasActions,
+      customSound: model.customSound,
     );
 
     // For daily/weekly notifications with a specific time, use zonedSchedule with matchDateTimeComponents

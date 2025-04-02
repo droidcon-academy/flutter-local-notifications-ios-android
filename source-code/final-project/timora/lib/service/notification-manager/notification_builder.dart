@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
@@ -81,15 +80,8 @@ class NotificationBuilder {
   }
 
   /// Adds an image to be displayed in the expanded notification view.
-  ///
-  /// [imageBytes] The raw bytes of the image to display
-  ///
-  /// Throws an [ArgumentError] if the image bytes array is empty.
-  NotificationBuilder setImage(Uint8List imageBytes) {
-    if (imageBytes.isEmpty) {
-      throw ArgumentError('Image bytes cannot be empty');
-    }
-    _model = _model.copyWith(imageBytes: imageBytes);
+  NotificationBuilder setImage(bool imageAttachment) {
+    _model = _model.copyWith(imageAttachment: imageAttachment);
     return this;
   }
 
@@ -176,6 +168,14 @@ class NotificationBuilder {
       throw ArgumentError('Current progress cannot exceed maximum');
     }
     _model = _model.copyWith(currentProgress: current, maxProgress: max);
+    return this;
+  }
+
+  /// Sets whether to use a custom notification sound.
+  ///
+  /// [useCustomSound] Whether to use a custom sound for this notification
+  NotificationBuilder setCustomSound(bool useCustomSound) {
+    _model = _model.copyWith(customSound: useCustomSound);
     return this;
   }
 

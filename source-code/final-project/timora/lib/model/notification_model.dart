@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -17,12 +16,13 @@ class NotificationModel {
   final int? occurrenceCount;
   final bool isFullScreen;
   final bool hasActions;
-  final Uint8List? imageBytes;
+  final bool imageAttachment;
   final int? maxProgress;
   final int? currentProgress;
   final String? payload;
   final String? groupKey;
   final NotificationLevel level;
+  final bool customSound;
 
   const NotificationModel({
     required this.id,
@@ -38,12 +38,13 @@ class NotificationModel {
     this.occurrenceCount,
     this.isFullScreen = false,
     this.hasActions = false,
-    this.imageBytes,
+    this.imageAttachment = false,
     this.maxProgress,
     this.currentProgress,
     this.payload,
     this.groupKey,
     this.level = NotificationLevel.normal,
+    this.customSound = false,
   });
 
   /// Create a copy of this notification with updated values
@@ -61,12 +62,13 @@ class NotificationModel {
     int? occurrenceCount,
     bool? isFullScreen,
     bool? hasActions,
-    Uint8List? imageBytes,
+    bool? imageAttachment,
     int? maxProgress,
     int? currentProgress,
     String? payload,
     String? groupKey,
     NotificationLevel? level,
+    bool? customSound,
   }) {
     return NotificationModel(
       id: id ?? this.id,
@@ -82,12 +84,13 @@ class NotificationModel {
       occurrenceCount: occurrenceCount ?? this.occurrenceCount,
       isFullScreen: isFullScreen ?? this.isFullScreen,
       hasActions: hasActions ?? this.hasActions,
-      imageBytes: imageBytes ?? this.imageBytes,
+      imageAttachment: imageAttachment ?? this.imageAttachment,
       maxProgress: maxProgress ?? this.maxProgress,
       currentProgress: currentProgress ?? this.currentProgress,
       payload: payload ?? this.payload,
       groupKey: groupKey ?? this.groupKey,
       level: level ?? this.level,
+      customSound: customSound ?? this.customSound,
     );
   }
 
@@ -109,12 +112,13 @@ class NotificationModel {
     'occurrenceCount': occurrenceCount,
     'isFullScreen': isFullScreen,
     'hasActions': hasActions,
-    'imageBytes': imageBytes != null ? base64Encode(imageBytes!) : null,
+    'imageBytes': imageAttachment,
     'maxProgress': maxProgress,
     'currentProgress': currentProgress,
     'payload': payload,
     'groupKey': groupKey,
     'level': level.name,
+    'customSound': customSound,
   };
 
   /// Create from JSON (payload)
@@ -150,10 +154,7 @@ class NotificationModel {
       occurrenceCount: json['occurrenceCount'] as int?,
       isFullScreen: json['isFullScreen'] as bool? ?? false,
       hasActions: json['hasActions'] as bool? ?? false,
-      imageBytes:
-          json['imageBytes'] != null
-              ? base64Decode(json['imageBytes'] as String)
-              : null,
+      imageAttachment: json['imageAttachment'],
       maxProgress: json['maxProgress'] as int?,
       currentProgress: json['currentProgress'] as int?,
       payload: json['payload'] as String?,
@@ -164,6 +165,7 @@ class NotificationModel {
                 (e) => e.name == json['level'],
               )
               : NotificationLevel.normal,
+      customSound: json['customSound'] as bool? ?? false,
     );
   }
 

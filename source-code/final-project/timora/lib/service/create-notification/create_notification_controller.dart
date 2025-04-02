@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timora/core/util/notification_util.dart';
 import 'package:timora/model/notification_model.dart';
 import 'package:timora/service/notification-manager/notification_builder.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
@@ -81,10 +80,15 @@ class CreateNotificationController extends ValueNotifier<NotificationFormData> {
     notifyListeners();
   }
 
+  void updateCustomSound(bool useCustomSound) {
+    value = value..customSound = useCustomSound;
+    notifyListeners();
+  }
+
   // Image picker - now returns a Future<bool> to indicate success
   Future<bool> pickImage() async {
     // This is a mock implementation using a sample image
-    value = value..imageBytes = sampleImageBytes;
+    value = value..imageAttachment = true;
     notifyListeners();
     return true;
   }
@@ -151,12 +155,15 @@ class CreateNotificationController extends ValueNotifier<NotificationFormData> {
     // Add common properties
     builder = builder.setFullScreen(value.isFullScreen);
 
-    if (value.imageBytes != null) {
-      builder = builder.setImage(value.imageBytes!);
-    }
+    builder = builder.setImage(value.imageAttachment);
 
     if (value.hasActions) {
       builder = builder.setActions();
+    }
+
+    // Add custom sound property
+    if (value.customSound) {
+      builder = builder.setCustomSound(true);
     }
 
     // Configure based on type

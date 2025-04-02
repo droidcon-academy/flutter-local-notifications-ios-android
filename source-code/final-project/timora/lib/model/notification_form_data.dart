@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:timora/core/constants/notification_constants.dart';
 import 'package:timora/model/notification_model.dart';
@@ -13,7 +12,8 @@ class NotificationFormData {
   NotificationLevel level = NotificationLevel.normal;
   bool isFullScreen = false;
   bool hasActions = false;
-  Uint8List? imageBytes;
+  bool imageAttachment = false;
+  bool customSound = false;
   String notificationType = 'Instant'; // Default type
   String periodicSubtype = 'Daily'; // Default subtype
 }

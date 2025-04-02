@@ -27,10 +27,22 @@ class AdditionalOptionsSection extends StatelessWidget {
         if (controller.showFullScreenOption) const SizedBox(height: 8),
         SwitchListTile(
           title: const Text('Interactive Actions'),
-          subtitle: const Text('Add snooze and dismiss buttons'),
+          subtitle: const Text('Snooze, Dismiss and Reply'),
           secondary: const Icon(Icons.touch_app),
           value: controller.value.hasActions,
           onChanged: controller.updateHasActions,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(color: Colors.grey.shade300),
+          ),
+          tileColor: Colors.white,
+        ),
+        const SizedBox(height: 8),
+        SwitchListTile(
+          title: const Text('Custom Sound'),
+          secondary: const Icon(Icons.music_note),
+          value: controller.value.customSound,
+          onChanged: controller.updateCustomSound,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: BorderSide(color: Colors.grey.shade300),
@@ -51,13 +63,13 @@ class AdditionalOptionsSection extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    controller.value.imageBytes == null
-                        ? Icons.add_photo_alternate
-                        : Icons.check_circle,
+                    controller.value.imageAttachment
+                        ? Icons.check_circle
+                        : Icons.add_photo_alternate,
                     color:
-                        controller.value.imageBytes == null
-                            ? Colors.grey
-                            : Colors.green,
+                        controller.value.imageAttachment
+                            ? Colors.green
+                            : Colors.grey,
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -68,9 +80,9 @@ class AdditionalOptionsSection extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        controller.value.imageBytes == null
-                            ? 'Tap to select an image'
-                            : 'Image attached!',
+                        controller.value.imageAttachment
+                            ? 'Image attached!'
+                            : 'Tap to select an image',
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],

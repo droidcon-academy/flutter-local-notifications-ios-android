@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timora/core/view/widgets/timora_app_bar.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
 import 'package:timora/model/notification_model.dart';
 
@@ -151,11 +152,8 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Notification Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+      appBar: TimoraAppBar(
+        title: 'Notification Details',
         actions: [
           IconButton(
             icon: const Icon(Icons.delete),
@@ -165,9 +163,6 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
             },
           ),
         ],
-        elevation: 0,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
       ),
       body: Container(
         decoration: BoxDecoration(
