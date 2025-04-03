@@ -4,26 +4,43 @@ This is a starter project for the "Mastering Flutter Local Notifications" codela
 
 ## Project Structure
 
-This starter project includes a complete UI and basic app structure. Your task will be to implement the notification functionality throughout the codelab.
+This starter project includes a complete UI and basic app structure. Your task will be to implement the notification functionality throughout the codelab. The project contains TODOs throughout the codebase to guide you on what needs to be implemented.
 
 ### Key Files to Modify
 
-1. **lib/service/notification-manager/notification_manager.dart**
+1. **lib/main.dart**
+   - Initialize the notification manager
+   - Set up the app to handle notifications
+
+2. **lib/service/notification-manager/notification_manager.dart**
    - This is the main class for managing notifications
-   - You'll implement methods for showing different types of notifications
+   - Implement methods for showing different types of notifications
+   - Set up notification channels and permissions
 
-2. **lib/service/notification-manager/notification_builder.dart**
+3. **lib/service/notification-manager/notification_builder.dart**
    - A builder class that provides a fluent API for configuring notifications
-   - You'll enhance this class to support various notification features
+   - Implement methods for building different types of notifications
 
-3. **android/app/src/main/AndroidManifest.xml**
-   - You'll add required permissions and receivers for Android notifications
+4. **lib/view/create-notification/create_notification_page.dart**
+   - Implement the UI logic for creating notifications
+   - Connect the UI to the notification manager
 
-4. **ios/Runner/AppDelegate.swift**
-   - You'll configure iOS-specific notification settings
+5. **lib/view/home/home_page.dart**
+   - Implement loading and managing notifications
+   - Handle notification deletion
 
-5. **ios/Runner/Info.plist**
-   - You'll add required permission strings for iOS notifications
+6. **lib/view/notification-details/notification_details_page.dart**
+   - Implement loading notification details
+   - Handle updating and deleting notifications
+
+7. **android/app/src/main/AndroidManifest.xml**
+   - Add required permissions and receivers for Android notifications
+
+8. **ios/Runner/AppDelegate.swift**
+   - Configure iOS-specific notification settings
+
+9. **ios/Runner/Info.plist**
+   - Add required permission strings for iOS notifications
 
 ## Getting Started
 
@@ -32,12 +49,40 @@ This starter project includes a complete UI and basic app structure. Your task w
 3. Run `flutter pub get` to install dependencies
 4. Follow the codelab instructions to implement the notification features
 
+## TODOs in the Codebase
+
+The project contains numerous TODOs to guide your implementation. Here are the main categories:
+
+### Initialization and Setup
+- Initialize the notification manager in main.dart
+- Set up time zones for scheduled notifications
+- Configure notification channels for Android
+- Request notification permissions
+
+### Basic Notifications
+- Implement instant notifications
+- Configure notification details (importance, priority, etc.)
+- Handle notification taps and actions
+
+### Advanced Notifications
+- Implement scheduled notifications with time zone awareness
+- Create periodic notifications that repeat at fixed intervals
+- Build progress notifications with updating progress bars
+- Create grouped notifications for related content
+
+### Platform-Specific Configuration
+- Configure Android notification channels and permissions
+- Set up iOS notification categories and actions
+- Handle platform-specific notification behaviors
+
 ## Features to Implement
 
 - Basic notification initialization and permission handling
 - Instant notifications with various customization options
 - Scheduled notifications with time zone awareness
 - Periodic notifications that repeat at fixed intervals
+- Progress notifications with updating progress bars
+- Grouped notifications for related content
 - Notification actions and interaction handling
 - Platform-specific configurations for Android and iOS
 
