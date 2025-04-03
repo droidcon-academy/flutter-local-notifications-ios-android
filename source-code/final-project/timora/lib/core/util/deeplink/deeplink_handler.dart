@@ -25,7 +25,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:timora/core/router/app_router.dart';
 import 'package:timora/core/router/app_routes_enum.dart';
-import 'package:timora/core/util/notification_deeplink_util.dart';
+import 'package:timora/core/util/deeplink/notification_deeplink_util.dart';
 
 /// Handles deep link navigation within the app
 ///

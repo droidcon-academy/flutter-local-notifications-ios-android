@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/service/create-notification/create_notification_controller.dart';
 import 'package:timora/view/create-notification/widgets/additional_options_section.dart';
 import 'package:timora/view/create-notification/widgets/basic_info_section.dart';
@@ -31,9 +32,15 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
   // UI helper methods - moved from controller
   void _showValidationError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   Future<void> _pickDate() async {
@@ -147,115 +154,59 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
     }
   }
 
-  Widget _buildCard(String title, List<Widget> children) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.brown),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.brown,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+  Widget _buildCard(String title, List<Widget> children, {IconData? icon}) {
+    return ModernCard(
+      title: title,
+      icon: icon ?? Icons.info_outline,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Create Notification',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        elevation: 0,
-        backgroundColor: theme.colorScheme.primary,
-        foregroundColor: theme.colorScheme.onPrimary,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.colorScheme.surface,
-              theme.colorScheme.surface.withValues(alpha: .9),
-            ],
-          ),
-        ),
+      extendBodyBehindAppBar: true,
+      appBar: ModernAppBar(title: 'Create Notification'),
+      body: GradientBackground(
         child: ValueListenableBuilder(
           valueListenable: _controller,
           builder: (context, formData, _) {
             return Form(
               key: _controller.formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.fromLTRB(20.0, 100.0, 20.0, 20.0),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildCard('Basic Information', [
                       BasicInfoSection(controller: _controller),
-                    ]),
+                    ], icon: Icons.edit_note),
                     _buildCard('Notification Type', [
                       NotificationTypeSection(
                         controller: _controller,
                         onDateTimePicked: _pickDate,
                         onTimePicked: _pickTime,
                       ),
-                    ]),
+                    ], icon: Icons.notifications_active),
                     _buildCard('Category', [
                       CategorySection(controller: _controller),
-                    ]),
+                    ], icon: Icons.category),
                     _buildCard('Priority', [
                       PrioritySection(controller: _controller),
-                    ]),
+                    ], icon: Icons.priority_high),
                     _buildCard('Additional Options', [
                       AdditionalOptionsSection(controller: _controller),
-                    ]),
-                    SizedBox(
+                    ], icon: Icons.settings),
+                    const SizedBox(height: 16),
+                    StyledButton(
+                      label: 'Schedule Notification',
+                      icon: Icons.schedule,
+                      onPressed: _scheduleNotification,
                       width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.schedule),
-                        label: const Text(
-                          'SCHEDULE NOTIFICATION',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: _scheduleNotification,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primary,
-                          foregroundColor: theme.colorScheme.onPrimary,
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
                     ),
                     const SizedBox(height: 24),
                     _buildCard('Experiments', [
@@ -263,8 +214,8 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
                         onProgressTest: _showProgressNotification,
                         onGroupTest: _showGroupNotification,
                       ),
-                    ]),
-                    const SizedBox(height: 24),
+                    ], icon: Icons.science),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

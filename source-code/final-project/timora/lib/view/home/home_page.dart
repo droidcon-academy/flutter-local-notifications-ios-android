@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:timora/core/view/widgets/confirmation_dialog.dart';
-import 'package:timora/core/view/widgets/empty_state.dart';
-import 'package:timora/core/view/widgets/timora_app_bar.dart';
 import 'package:timora/core/router/app_routes_enum.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/model/notification_model.dart';
 import 'package:timora/view/home/widgets/notification_card.dart';
 
@@ -155,13 +153,24 @@ class _HomePageContentState extends State<_HomePageContent> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TimoraAppBar(title: 'Timora'),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _navigateToCreate,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Reminder'),
+      extendBodyBehindAppBar: true,
+      appBar: ModernAppBar(
+        title: 'Timora',
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 24),
+            tooltip: 'Settings',
+            onPressed:
+                () => Navigator.pushNamed(context, AppRoutes.settings.value),
+          ),
+        ],
       ),
-      body: _buildBody(),
+      floatingActionButton: StyledButton(
+        label: 'Add Reminder',
+        icon: Icons.add,
+        onPressed: _navigateToCreate, // Increased width to ensure text fits
+      ),
+      body: GradientBackground(child: _buildBody()),
     );
   }
 
@@ -171,11 +180,15 @@ class _HomePageContentState extends State<_HomePageContent> {
   /// refreshable notification list when data is available.
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator.adaptive());
     }
 
     return RefreshIndicator(
       onRefresh: _handleRefresh,
+      color: Theme.of(context).colorScheme.primary,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      // strokeWidth: 2.5,
+      // displacement: 40,
       child: _NotificationListView(
         notifications: _notifications,
         onEdit: _navigateToDetails,
@@ -216,7 +229,7 @@ class _NotificationListView extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         final notification = notifications[index];

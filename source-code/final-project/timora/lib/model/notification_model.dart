@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timora/core/constants/notification_constants.dart';
 
 class NotificationModel {
   final int id;
@@ -238,4 +239,75 @@ enum NotificationLevel {
     required this.vibrate,
     required this.visibility,
   });
+}
+
+/// Enhanced enum for notification channels with associated colors and display names.
+///
+/// This enum provides a centralized way to manage notification channels,
+/// their display names, and associated colors.
+enum NotificationChannel {
+  work(
+    id: NotificationChannelIds.work,
+    displayName: 'Work',
+    color: Colors.blue,
+    soundId: NotificationChannelIds.workSound,
+  ),
+
+  personal(
+    id: NotificationChannelIds.personal,
+    displayName: 'Personal',
+    color: Colors.green,
+    soundId: NotificationChannelIds.personalSound,
+  ),
+
+  health(
+    id: NotificationChannelIds.health,
+    displayName: 'Health',
+    color: Colors.red,
+    soundId: NotificationChannelIds.healthSound,
+  ),
+
+  default_(
+    id: NotificationChannelIds.defaultChannel,
+    displayName: 'Default',
+    color: Colors.blueGrey,
+    soundId: null,
+  );
+
+  /// The channel ID used for notification configuration
+  final String id;
+
+  /// The human-readable display name for the channel
+  final String displayName;
+
+  /// The color associated with this channel for UI elements
+  final Color color;
+
+  /// The ID for the sound variant of this channel (if applicable)
+  final String? soundId;
+
+  const NotificationChannel({
+    required this.id,
+    required this.displayName,
+    required this.color,
+    this.soundId,
+  });
+
+  /// Get a NotificationChannel from its ID
+  static NotificationChannel fromId(String id) {
+    return NotificationChannel.values.firstWhere(
+      (channel) => channel.id == id || channel.soundId == id,
+      orElse: () => NotificationChannel.default_,
+    );
+  }
+
+  /// Get the appropriate color for a channel ID
+  static Color colorFromId(String id) {
+    return fromId(id).color;
+  }
+
+  /// Get the display name for a channel ID
+  static String displayNameFromId(String id) {
+    return fromId(id).displayName;
+  }
 }

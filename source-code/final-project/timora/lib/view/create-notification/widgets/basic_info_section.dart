@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/service/create-notification/create_notification_controller.dart';
 
 class BasicInfoSection extends StatelessWidget {
@@ -11,28 +12,18 @@ class BasicInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
+        StyledTextField(
           controller: controller.titleController,
-          decoration: InputDecoration(
-            labelText: 'Title',
-            prefixIcon: const Icon(Icons.title),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
+          label: 'Title',
+          prefixIcon: Icons.title,
           validator: (value) => value!.isEmpty ? 'Please enter a title' : null,
         ),
-        const SizedBox(height: 16),
-        TextFormField(
+        const SizedBox(height: 20),
+        StyledTextField(
           controller: controller.bodyController,
-          decoration: InputDecoration(
-            labelText: 'Message',
-            prefixIcon: const Icon(Icons.message),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-            filled: true,
-            fillColor: Colors.white,
-          ),
-          maxLines: 3,
+          label: 'Message',
+          prefixIcon: Icons.message,
+          multiline: true,
           validator:
               (value) => value!.isEmpty ? 'Please enter a message' : null,
         ),

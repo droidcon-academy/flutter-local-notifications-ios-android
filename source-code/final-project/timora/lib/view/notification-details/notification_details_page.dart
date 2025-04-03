@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:timora/core/view/widgets/timora_app_bar.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
 import 'package:timora/model/notification_model.dart';
 
@@ -102,35 +102,13 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
     }
   }
 
-  Widget _buildCard(String title, List<Widget> children) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.brown),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.brown,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
+  Widget _buildCard(String title, List<Widget> children, {IconData? icon}) {
+    return ModernCard(
+      title: title,
+      icon: icon ?? Icons.info_outline,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
@@ -146,17 +124,25 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
   @override
   Widget build(BuildContext context) {
     if (_notification == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator.adaptive()),
+      );
     }
 
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: TimoraAppBar(
+      extendBodyBehindAppBar: true,
+      appBar: ModernAppBar(
         title: 'Notification Details',
         actions: [
           IconButton(
-            icon: const Icon(Icons.delete),
+            icon: Icon(
+              Icons.delete_outline,
+              color: theme.colorScheme.error,
+              size: 24,
+            ),
+            tooltip: 'Delete notification',
             onPressed: () async {
               await _notificationManager.cancelNotification(_notification!.id);
               if (context.mounted) Navigator.pop(context, true);
@@ -164,127 +150,204 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.colorScheme.surface,
-              theme.colorScheme.surface.withValues(alpha: .9),
-            ],
-          ),
-        ),
+      body: GradientBackground(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(20.0, 100.0, 20.0, 20.0),
+          physics: const BouncingScrollPhysics(),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildCard('Basic Information', [
-                  TextFormField(
+                  StyledTextField(
                     controller: _titleController,
-                    decoration: InputDecoration(
-                      labelText: 'Title',
-                      prefixIcon: const Icon(Icons.title),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
+                    label: 'Title',
+                    prefixIcon: Icons.title,
                     validator:
                         (value) =>
                             value!.isEmpty ? 'Please enter a title' : null,
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
+                  const SizedBox(height: 20),
+                  StyledTextField(
                     controller: _bodyController,
-                    decoration: InputDecoration(
-                      labelText: 'Message',
-                      prefixIcon: const Icon(Icons.message),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    maxLines: 3,
+                    label: 'Message',
+                    prefixIcon: Icons.message,
+                    multiline: true,
                     validator:
                         (value) =>
                             value!.isEmpty ? 'Please enter a message' : null,
                   ),
-                ]),
+                ], icon: Icons.edit_note),
                 if (_notification!.type == NotificationType.scheduled)
                   _buildCard('Schedule', [
-                    Tooltip(
-                      message: 'Change the scheduled date and time',
-                      child: ElevatedButton.icon(
-                        onPressed: _pickDateTime,
-                        icon: const Icon(Icons.calendar_today),
-                        label: Text(_formattedScheduledTime),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.primary.withValues(
+                              alpha: 0.15,
+                            ),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        clipBehavior: Clip.antiAlias,
+                        child: Tooltip(
+                          message: 'Change the scheduled date and time',
+                          child: InkWell(
+                            onTap: _pickDateTime,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 16,
+                                horizontal: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    _scheduledDateTime != null
+                                        ? theme.colorScheme.primary.withValues(
+                                          alpha: 0.05,
+                                        )
+                                        : theme
+                                            .colorScheme
+                                            .surfaceContainerLowest,
+                                    _scheduledDateTime != null
+                                        ? theme.colorScheme.primary.withValues(
+                                          alpha: 0.1,
+                                        )
+                                        : theme
+                                            .colorScheme
+                                            .surfaceContainerLowest,
+                                  ],
+                                ),
+                                border: Border.all(
+                                  color:
+                                      _scheduledDateTime != null
+                                          ? theme.colorScheme.primary
+                                              .withValues(alpha: 0.3)
+                                          : theme.colorScheme.outlineVariant
+                                              .withValues(alpha: 0.5),
+                                  width: 1.5,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          _scheduledDateTime != null
+                                              ? theme.colorScheme.primary
+                                                  .withValues(alpha: 0.1)
+                                              : theme
+                                                  .colorScheme
+                                                  .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Icon(
+                                      Icons.calendar_today,
+                                      color:
+                                          _scheduledDateTime != null
+                                              ? theme.colorScheme.primary
+                                              : theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _scheduledDateTime == null
+                                              ? 'Select Date & Time'
+                                              : 'Scheduled Date & Time',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            color:
+                                                _scheduledDateTime != null
+                                                    ? theme.colorScheme.primary
+                                                    : theme
+                                                        .colorScheme
+                                                        .onSurface,
+                                          ),
+                                        ),
+                                        if (_scheduledDateTime != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _formattedScheduledTime,
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: theme.colorScheme.primary
+                                                  .withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                        ] else ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'Tap to choose when to send the notification',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color:
+                                                  theme
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16,
+                                    color:
+                                        _scheduledDateTime != null
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.onSurfaceVariant
+                                                .withValues(alpha: 0.5),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ]),
-                const SizedBox(height: 16),
-                SizedBox(
+                  ], icon: Icons.schedule),
+                const SizedBox(height: 8),
+                StyledButton(
+                  label: 'Save Changes',
+                  icon: Icons.save,
+                  onPressed: _updateNotification,
                   width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.save),
-                    label: const Text(
-                      'SAVE CHANGES',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: _updateNotification,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 16),
-                SizedBox(
+                StyledButton(
+                  label: 'Delete Notification',
+                  icon: Icons.delete_outline,
+                  onPressed: () async {
+                    await _notificationManager.cancelNotification(
+                      _notification!.id,
+                    );
+                    if (context.mounted) Navigator.pop(context, true);
+                  },
+                  type: StyledButtonType.danger,
                   width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text(
-                      'DELETE NOTIFICATION',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    onPressed: () async {
-                      await _notificationManager.cancelNotification(
-                        _notification!.id,
-                      );
-                      if (context.mounted) Navigator.pop(context, true);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      foregroundColor: theme.colorScheme.onError,
-                      elevation: 3,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),

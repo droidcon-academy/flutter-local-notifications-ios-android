@@ -5,22 +5,14 @@ import 'package:intl/intl.dart';
 
 /// Utility class for notification-related operations
 class NotificationUtils {
-  /// Returns a color based on the notification category
-  static Color categoryColor(String category) {
-    switch (category.toLowerCase()) {
-      case 'work':
-        return Colors.blue;
-      case 'personal':
-        return Colors.green;
-      case 'health':
-        return Colors.red;
-      case 'finance':
-        return Colors.purple;
-      case 'education':
-        return Colors.orange;
-      default:
-        return Colors.blueGrey;
-    }
+  /// Returns a color based on the notification channel ID
+  static Color categoryColor(String channelId) {
+    return NotificationChannel.colorFromId(channelId);
+  }
+
+  /// Returns the display name for a notification channel ID
+  static String channelDisplayName(String channelId) {
+    return NotificationChannel.displayNameFromId(channelId);
   }
 
   /// Formats the scheduled time of a notification

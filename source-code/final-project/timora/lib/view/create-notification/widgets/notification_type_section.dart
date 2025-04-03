@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/service/create-notification/create_notification_controller.dart';
 
 class NotificationTypeSection extends StatelessWidget {
@@ -15,33 +16,11 @@ class NotificationTypeSection extends StatelessWidget {
 
   Widget _buildNotificationTypeSelector(BuildContext context) {
     final mainTypes = ['Instant', 'Scheduled', 'Periodic'];
-    final theme = Theme.of(context);
 
-    return Wrap(
-      spacing: 8.0,
-      runSpacing: 8.0,
-      children:
-          mainTypes.map((type) {
-            final isSelected = controller.value.notificationType == type;
-            return ChoiceChip(
-              checkmarkColor: theme.colorScheme.onPrimary,
-              label: Text(type),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) {
-                  controller.updateNotificationType(type);
-                }
-              },
-              selectedColor: theme.colorScheme.primary,
-              backgroundColor: theme.colorScheme.surfaceContainerHighest,
-              labelStyle: TextStyle(
-                color:
-                    isSelected
-                        ? theme.colorScheme.onPrimary
-                        : theme.colorScheme.onSurface,
-              ),
-            );
-          }).toList(),
+    return ChipSelector(
+      options: mainTypes,
+      selectedOption: controller.value.notificationType,
+      onSelected: controller.updateNotificationType,
     );
   }
 
@@ -56,37 +35,40 @@ class NotificationTypeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 16),
-        const Text(
-          'Repeat Frequency:',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Icon(
+                  Icons.repeat,
+                  color: theme.colorScheme.primary,
+                  size: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Repeat Frequency',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface,
+                letterSpacing: -0.3,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8.0,
-          runSpacing: 8.0,
-          children:
-              periodicSubtypes.map((subtype) {
-                final isSelected = controller.value.periodicSubtype == subtype;
-                return ChoiceChip(
-                  checkmarkColor: theme.colorScheme.onSecondary,
-                  label: Text(subtype),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      controller.updatePeriodicSubtype(subtype);
-                    }
-                  },
-                  selectedColor: theme.colorScheme.secondary,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  labelStyle: TextStyle(
-                    color:
-                        isSelected
-                            ? theme.colorScheme.onSecondary
-                            : theme.colorScheme.onSurface,
-                  ),
-                );
-              }).toList(),
+        const SizedBox(height: 12),
+        ChipSelector(
+          options: periodicSubtypes,
+          selectedOption: controller.value.periodicSubtype,
+          onSelected: controller.updatePeriodicSubtype,
         ),
       ],
     );
@@ -97,23 +79,23 @@ class NotificationTypeSection extends StatelessWidget {
 
     // For scheduled notifications
     if (formData.notificationType == 'Scheduled') {
-      return Tooltip(
-        message: 'Select a date and time for the notification',
-        child: ElevatedButton.icon(
-          onPressed: onDateTimePicked,
-          icon: const Icon(Icons.calendar_today),
-          label: Text(
-            formData.scheduledDateTime == null
-                ? 'Select Date & Time'
-                : 'Scheduled: ${formData.scheduledDateTime!.day}/${formData.scheduledDateTime!.month}/${formData.scheduledDateTime!.year} at ${formData.scheduledDateTime!.hour}:${formData.scheduledDateTime!.minute.toString().padLeft(2, '0')}',
-          ),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
+      final dateTime = formData.scheduledDateTime;
+      String? subtitle;
+
+      if (dateTime != null) {
+        subtitle =
+            '${dateTime.day}/${dateTime.month}/${dateTime.year} at ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+      }
+
+      return DateTimeSelector(
+        selectedTitle: 'Scheduled Date & Time',
+        unselectedTitle: 'Select Date & Time',
+        selectedSubtitle: subtitle,
+        unselectedSubtitle: 'Tap to choose when to send the notification',
+        icon: Icons.calendar_today,
+        tooltip: 'Select a date and time for the notification',
+        onTap: onDateTimePicked,
+        hasValue: dateTime != null,
       );
     }
 
@@ -122,39 +104,43 @@ class NotificationTypeSection extends StatelessWidget {
         (formData.periodicSubtype == 'Daily' ||
             formData.periodicSubtype == 'Weekly' ||
             formData.periodicSubtype == 'Hourly')) {
-      String buttonLabel;
+      String buttonTitle;
+      String unselectedSubtitle;
+      String? selectedSubtitle;
 
       // Different label text based on the notification subtype
       if (formData.periodicSubtype == 'Daily') {
-        buttonLabel =
-            formData.recurringTime == null
-                ? 'Select Time of Day'
-                : 'Daily at: ${formData.recurringTime!.format(context)}';
+        buttonTitle = 'Daily Time';
+        unselectedSubtitle = 'Select time of day';
+        if (formData.recurringTime != null) {
+          selectedSubtitle =
+              'At ${formData.recurringTime!.format(context)} every day';
+        }
       } else if (formData.periodicSubtype == 'Weekly') {
-        buttonLabel =
-            formData.recurringTime == null
-                ? 'Select Time of Day'
-                : 'Weekly at: ${formData.recurringTime!.format(context)}';
+        buttonTitle = 'Weekly Time';
+        unselectedSubtitle = 'Select time of day';
+        if (formData.recurringTime != null) {
+          selectedSubtitle =
+              'At ${formData.recurringTime!.format(context)} weekly';
+        }
       } else {
-        buttonLabel =
-            formData.recurringTime == null
-                ? 'Select Start Time (Optional)'
-                : 'Starting at: ${formData.recurringTime!.format(context)}';
+        buttonTitle = 'Start Time';
+        unselectedSubtitle = 'Select start time (optional)';
+        if (formData.recurringTime != null) {
+          selectedSubtitle =
+              'Starting at ${formData.recurringTime!.format(context)}';
+        }
       }
 
-      return Tooltip(
-        message: 'Select a time for the recurring notification',
-        child: ElevatedButton.icon(
-          onPressed: onTimePicked,
-          icon: const Icon(Icons.access_time),
-          label: Text(buttonLabel),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
+      return DateTimeSelector(
+        selectedTitle: buttonTitle,
+        unselectedTitle: buttonTitle,
+        selectedSubtitle: selectedSubtitle,
+        unselectedSubtitle: unselectedSubtitle,
+        icon: Icons.access_time,
+        tooltip: 'Select a time for the recurring notification',
+        onTap: onTimePicked,
+        hasValue: formData.recurringTime != null,
       );
     }
 
@@ -173,18 +159,11 @@ class NotificationTypeSection extends StatelessWidget {
         if (controller.value.notificationType == 'Periodic' &&
             controller.value.periodicSubtype == 'Weekly')
           Padding(
-            padding: const EdgeInsets.only(top: 16.0),
-            child: DropdownButtonFormField<int>(
+            padding: const EdgeInsets.only(top: 16),
+            child: StyledDropdown<int>(
+              label: 'Day of Week',
+              prefixIcon: Icons.view_week,
               value: controller.value.dayOfWeek,
-              decoration: InputDecoration(
-                labelText: 'Day of Week',
-                prefixIcon: const Icon(Icons.view_week),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-              ),
               items: const [
                 DropdownMenuItem(value: 1, child: Text('Monday')),
                 DropdownMenuItem(value: 2, child: Text('Tuesday')),

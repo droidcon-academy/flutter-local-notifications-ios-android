@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:timora/core/router/app_router.dart';
 import 'package:timora/core/router/app_routes_enum.dart';
-import 'package:timora/core/util/deeplink_handler_util.dart';
+import 'package:timora/core/theme/theme_provider.dart';
+import 'package:timora/core/util/deeplink/deeplink_handler.dart';
 import 'package:timora/service/notification-manager/notification_manager.dart';
 
 void main() async {
@@ -35,6 +36,11 @@ class App extends StatelessWidget {
       navigatorKey: AppRouter.navigatorKey,
       initialRoute: AppRoutes.home.value,
       onGenerateRoute: AppRouter.onGenerateRoute,
+      theme: ThemeProvider.getLightTheme(),
+      darkTheme: ThemeProvider.getDarkTheme(),
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      title: 'Timora',
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:timora/core/util/notification_util.dart';
+import 'package:timora/core/view/widgets/widgets.dart';
 import 'package:timora/model/notification_model.dart';
 
 /// Displays notification information in a card format.
@@ -28,33 +29,63 @@ class NotificationCard extends StatelessWidget {
     final category = model.channelId;
     final categoryColor = NotificationUtils.categoryColor(category);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: categoryColor.withAlpha(77), width: 1),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: categoryColor.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onEdit,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _CardHeader(
-                category: category,
-                scheduleTime: NotificationUtils.formatScheduleTime(model),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onEdit,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Theme.of(context).colorScheme.surface,
+                    Theme.of(
+                      context,
+                    ).colorScheme.surface.withValues(alpha: 0.95),
+                  ],
+                ),
+                border: Border.all(
+                  color: categoryColor.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+                borderRadius: BorderRadius.circular(16),
               ),
-              const SizedBox(height: 12),
-              _CardContent(title: model.title, body: model.body),
-              _CardActions(
-                onEdit: onEdit,
-                onDelete: onDelete,
-                notificationTitle: model.title, // For accessibility
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _CardHeader(
+                      category: category,
+                      scheduleTime: NotificationUtils.formatScheduleTime(model),
+                    ),
+                    const SizedBox(height: 12),
+                    _CardContent(title: model.title, body: model.body),
+                    _CardActions(
+                      onEdit: onEdit,
+                      onDelete: onDelete,
+                      notificationTitle: model.title, // For accessibility
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -76,13 +107,33 @@ class _CardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CategoryBadge(category: category),
-        const Spacer(),
-        Text(
-          scheduleTime,
-          style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+        Row(
+          children: [
+            CategoryBadge(category: category),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.7,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                scheduleTime,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -111,18 +162,21 @@ class _CardContent extends StatelessWidget {
         Text(
           title,
           style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
             fontSize: 18,
+            letterSpacing: -0.3,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         Text(
           body,
           style: textTheme.bodyMedium?.copyWith(
-            color: Colors.grey.shade800,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontSize: 14,
+            height: 1.3,
+            letterSpacing: 0.1,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -153,24 +207,79 @@ class _CardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          IconButton(
-            iconSize: 20,
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Edit reminder',
-            icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
-            onPressed: onEdit,
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onEdit,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.edit_outlined,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Edit',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            iconSize: 20,
-            visualDensity: VisualDensity.compact,
-            tooltip: 'Delete reminder',
-            icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
-            onPressed: onDelete,
+          const SizedBox(width: 8),
+          Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onDelete,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Delete',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -189,24 +298,9 @@ class CategoryBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = NotificationUtils.categoryColor(category);
-    final displayText = category.toUpperCase();
+    final channel = NotificationChannel.fromId(category);
+    final displayText = channel.displayName.toUpperCase();
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(25),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withAlpha(127)),
-      ),
-      child: Text(
-        displayText,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
-      ),
-    );
+    return StyledBadge(text: displayText, color: channel.color);
   }
 }
