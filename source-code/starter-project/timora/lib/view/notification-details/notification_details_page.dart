@@ -147,7 +147,7 @@ class _NotificationDetailsPageState extends State<NotificationDetailsPage> {
       ),
       body: GradientBackground(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20.0, 100.0, 20.0, 20.0),
+          padding: const EdgeInsets.fromLTRB(20.0, 120.0, 20.0, 20.0),
           physics: const BouncingScrollPhysics(),
           child: Form(
             key: _formKey,

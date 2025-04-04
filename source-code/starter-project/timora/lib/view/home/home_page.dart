@@ -232,7 +232,7 @@ class _NotificationListView extends StatelessWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 100, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 120, 16, 16),
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         final notification = notifications[index];

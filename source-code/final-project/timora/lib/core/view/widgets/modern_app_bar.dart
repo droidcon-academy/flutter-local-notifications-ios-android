@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
 /// A modern app bar with a blur effect and transparent background.
 ///
@@ -20,29 +19,18 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// Optional callback for when the back button is pressed.
   final VoidCallback? onBackPressed;
 
-  /// The blur intensity for the backdrop filter.
-  final double blurIntensity;
-
-  /// Whether to use the blur effect.
-  /// Set to false on low-end devices for better performance.
-  final bool useBlurEffect;
-
   /// Creates a modern app bar with a blur effect.
   ///
   /// The [title] parameter is required and displayed as the app bar title.
   /// The [actions] parameter is optional and allows adding action buttons.
   /// The [leading] parameter is optional and allows customizing the leading widget.
   /// The [onBackPressed] parameter is optional and allows customizing the back button behavior.
-  /// The [blurIntensity] parameter defaults to 10.0 and controls the blur effect intensity.
-  /// The [useBlurEffect] parameter defaults to true and controls whether to use the blur effect.
   const ModernAppBar({
     super.key,
     required this.title,
     this.actions,
     this.leading,
     this.onBackPressed,
-    this.blurIntensity = 10.0,
-    this.useBlurEffect = true,
   });
 
   @override
@@ -51,34 +39,17 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.transparent,
-      foregroundColor:
-          theme.colorScheme.onSurface, // Use onSurface color for text and icons
-      flexibleSpace:
-          useBlurEffect
-              ? ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: blurIntensity,
-                    sigmaY: blurIntensity,
-                  ),
-                  child: Container(color: Colors.transparent),
-                ),
-              )
-              : Container(color: Colors.transparent),
+      backgroundColor: theme.colorScheme.surface.withValues(alpha: 0.8),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 22,
           letterSpacing: -0.5,
-          color: theme.colorScheme.onSurface, // Explicitly set text color
+          color: theme.colorScheme.onSurface,
         ),
       ),
-      iconTheme: IconThemeData(
-        color: theme.colorScheme.onSurface, // Set icon color
-        size: 24,
-      ),
+      iconTheme: IconThemeData(color: theme.colorScheme.onSurface, size: 24),
       leading:
           leading ??
           (Navigator.canPop(context)
@@ -86,8 +57,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: Icon(
                   Icons.arrow_back_ios_new,
                   size: 20,
-                  color:
-                      theme.colorScheme.onSurface, // Explicitly set icon color
+                  color: theme.colorScheme.onSurface,
                 ),
                 onPressed: onBackPressed ?? () => Navigator.pop(context),
               )

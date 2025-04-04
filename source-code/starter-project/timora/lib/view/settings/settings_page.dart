@@ -60,7 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
             _isLoading
                 ? const Center(child: CircularProgressIndicator.adaptive())
                 : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20.0, 100.0, 20.0, 20.0),
+                  padding: const EdgeInsets.fromLTRB(20.0, 120.0, 20.0, 20.0),
                   physics: const BouncingScrollPhysics(),
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 16),

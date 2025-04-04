@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
 
       setState(() {
-        _isPermissionGranted = granted;
+        _isPermissionGranted = false;
         _isLoading = false;
       });
 
@@ -60,152 +60,117 @@ class _SettingsPageState extends State<SettingsPage> {
             _isLoading
                 ? const Center(child: CircularProgressIndicator.adaptive())
                 : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20.0, 100.0, 20.0, 20.0),
+                  padding: const EdgeInsets.fromLTRB(20.0, 120.0, 20.0, 20.0),
                   physics: const BouncingScrollPhysics(),
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.08,
-                          ),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                          spreadRadius: 0,
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      borderRadius: BorderRadius.circular(16),
-                      clipBehavior: Clip.antiAlias,
-                      child: InkWell(
-                        onTap: _isPermissionGranted ? null : _checkPermission,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                theme.colorScheme.surface,
-                                theme.colorScheme.surface.withValues(
-                                  alpha: 0.95,
+                  child: Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(16),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: _isPermissionGranted ? null : _checkPermission,
+                      child: ModernCard(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        borderRadius: 16.0,
+                        accentColor:
+                            _isPermissionGranted
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.error,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _isPermissionGranted
+                                            ? theme.colorScheme.primary
+                                                .withValues(alpha: 0.1)
+                                            : theme.colorScheme.error
+                                                .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Icon(
+                                    _isPermissionGranted
+                                        ? Icons.notifications_active
+                                        : Icons.notifications_off,
+                                    color:
+                                        _isPermissionGranted
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.error,
+                                    size: 24,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            border: Border.all(
-                              color:
-                                  _isPermissionGranted
-                                      ? theme.colorScheme.primary.withValues(
-                                        alpha: 0.3,
-                                      )
-                                      : theme.colorScheme.error.withValues(
-                                        alpha: 0.3,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Notification Permission',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.colorScheme.onSurface,
+                                          letterSpacing: -0.3,
+                                        ),
                                       ),
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          _isPermissionGranted
-                                              ? theme.colorScheme.primary
-                                                  .withValues(alpha: 0.1)
-                                              : theme.colorScheme.error
-                                                  .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      _isPermissionGranted
-                                          ? Icons.notifications_active
-                                          : Icons.notifications_off,
-                                      color:
-                                          _isPermissionGranted
-                                              ? theme.colorScheme.primary
-                                              : theme.colorScheme.error,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Notification Permission',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            color: theme.colorScheme.onSurface,
-                                            letterSpacing: -0.3,
-                                          ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _isPermissionGranted
+                                            ? 'Permission granted'
+                                            : 'Permission required for notifications',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color:
+                                              _isPermissionGranted
+                                                  ? theme.colorScheme.primary
+                                                      .withValues(alpha: 0.8)
+                                                  : theme.colorScheme.error
+                                                      .withValues(alpha: 0.8),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _isPermissionGranted
-                                              ? 'Permission granted'
-                                              : 'Permission required for notifications',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                _isPermissionGranted
-                                                    ? theme.colorScheme.primary
-                                                        .withValues(alpha: 0.8)
-                                                    : theme.colorScheme.error
-                                                        .withValues(alpha: 0.8),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          _isPermissionGranted
-                                              ? theme.colorScheme.primary
-                                                  .withValues(alpha: 0.1)
-                                              : theme.colorScheme.error
-                                                  .withValues(alpha: 0.1),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      _isPermissionGranted
-                                          ? Icons.check_circle
-                                          : Icons.warning,
-                                      color:
-                                          _isPermissionGranted
-                                              ? theme.colorScheme.primary
-                                              : theme.colorScheme.error,
-                                      size: 24,
-                                    ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        _isPermissionGranted
+                                            ? theme.colorScheme.primary
+                                                .withValues(alpha: 0.1)
+                                            : theme.colorScheme.error
+                                                .withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
                                   ),
-                                ],
-                              ),
-                              if (!_isPermissionGranted) ...[
-                                const SizedBox(height: 16),
-                                StyledButton(
-                                  label: 'Request Permission',
-                                  icon: Icons.app_settings_alt,
-                                  onPressed: _checkPermission,
-                                  width: double.infinity,
-                                  height: 48,
-                                  borderRadius: 12,
+                                  child: Icon(
+                                    _isPermissionGranted
+                                        ? Icons.check_circle
+                                        : Icons.warning,
+                                    color:
+                                        _isPermissionGranted
+                                            ? theme.colorScheme.primary
+                                            : theme.colorScheme.error,
+                                    size: 24,
+                                  ),
                                 ),
                               ],
+                            ),
+                            if (!_isPermissionGranted) ...[
+                              const SizedBox(height: 16),
+                              StyledButton(
+                                label: 'Request Permission',
+                                icon: Icons.app_settings_alt,
+                                onPressed: _checkPermission,
+                                width: double.infinity,
+                                height: 48,
+                                borderRadius: 12,
+                              ),
                             ],
-                          ),
+                          ],
                         ),
                       ),
                     ),
