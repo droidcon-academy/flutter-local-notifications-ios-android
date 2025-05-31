@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
 
       setState(() {
-        _isPermissionGranted = false;
+        _isPermissionGranted = granted;
         _isLoading = false;
       });
 
