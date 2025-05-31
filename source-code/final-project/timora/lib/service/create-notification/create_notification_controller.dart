@@ -222,55 +222,21 @@ class CreateNotificationController extends ValueNotifier<NotificationFormData> {
   }
 
   // Progress notification setup
-  NotificationBuilder createProgressNotification({
+  Future<void> showTestProgressNotification({
     required int progress,
-    required int maxProgress,
-  }) {
-    final id = DateTime.now().millisecondsSinceEpoch % 10000;
-    final bool isComplete = progress >= maxProgress;
-
-    final title = isComplete ? 'Download Complete' : 'Download Progress';
-    final body =
-        isComplete
-            ? 'File ready to open'
-            : 'Downloading: ${(progress / maxProgress * 100).round()}%';
-
-    return notificationManager
-        .createNotification(
-          id: id,
-          title: title,
-          body: body,
-          channelId: value.channelId,
-          level: NotificationLevel.normal,
-        )
-        .setProgress(progress, maxProgress);
+    int maxProgress = 100,
+  }) async {
+    await notificationManager.showTestProgressNotification(
+      value.channelId,
+      progress: progress,
+      maxProgress: maxProgress,
+    );
   }
 
   // Group notification setup
-  Future<List<NotificationBuilder>> createGroupNotificationBuilders() async {
-    final List<String> messageContents = [
-      'First message in the group',
-      'Second notification with more details',
-      'Third notification in the sequence',
-    ];
-
-    // Create individual notification builders
-    final List<NotificationBuilder> notificationBuilders = [];
-
-    for (int i = 0; i < messageContents.length; i++) {
-      final id = DateTime.now().millisecondsSinceEpoch % 10000 + i;
-      final builder = notificationManager.createNotification(
-        id: id,
-        title: 'Group Message ${i + 1}',
-        body: messageContents[i],
-        channelId: value.channelId,
-        level: NotificationLevel.normal,
-      );
-
-      notificationBuilders.add(builder);
-    }
-
-    return notificationBuilders;
+  Future<void> showTestGroupNotification() async {
+    // Use the simplified test method directly
+    await notificationManager.showTestGroupNotification(value.channelId);
   }
 
   @override

@@ -321,9 +321,11 @@ class NotificationManager {
   /// [channelId] The channel ID for categorizing the notification
   /// [level] The importance level of the notification
   /// [isFullScreen] Whether to show as a high-priority full-screen alert
-  /// [imageBytes] Optional image to display in the notification
+  /// [imageAttachment] Whether to include an image in the notification
   /// [hasActions] Whether the notification includes interactive actions
-  /// [actionLabels] Labels for notification action buttons
+  /// [customSound] Whether to use a custom notification sound
+  /// [groupKey] Optional group key for Android grouped notifications
+  /// [isGroupSummary] Whether this notification is a group summary (Android only)
   Future<NotificationDetails> getNotificationDetailsConfig({
     required String channelId,
     required NotificationLevel level,
@@ -331,6 +333,8 @@ class NotificationManager {
     bool imageAttachment = false,
     bool hasActions = false,
     bool customSound = false,
+    String? groupKey,
+    bool isGroupSummary = false,
   }) async {
     final Uint8List imageBytes = base64Decode(
       NotificationUtils.sampleImageBase64,
@@ -353,12 +357,18 @@ class NotificationManager {
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       effectiveChannelId,
       effectiveChannelId.toUpperCase(),
+      channelDescription: 'Notifications for $effectiveChannelId',
       importance: level.importance,
       priority: level.priority,
       playSound: level.playSound,
       enableVibration: level.vibrate,
       visibility: level.visibility,
       fullScreenIntent: isFullScreen,
+      // Add group key and summary flag if provided
+      groupKey: groupKey,
+      setAsGroupSummary: isGroupSummary,
+      // Ensure notifications are auto-cancelled when tapped
+      autoCancel: true,
       styleInformation:
           imageAttachment
               ? BigPictureStyleInformation(
@@ -468,6 +478,7 @@ class NotificationManager {
       imageAttachment: notificationWithDeepLink.imageAttachment,
       hasActions: notificationWithDeepLink.hasActions,
       customSound: notificationWithDeepLink.customSound,
+      isGroupSummary: false,
     );
 
     await _flutterLocalNotificationsPlugin.show(
@@ -530,6 +541,7 @@ class NotificationManager {
       imageAttachment: notificationWithDeepLink.imageAttachment,
       hasActions: notificationWithDeepLink.hasActions,
       customSound: notificationWithDeepLink.customSound,
+      isGroupSummary: false,
     );
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
@@ -590,6 +602,7 @@ class NotificationManager {
       imageAttachment: notificationWithDeepLink.imageAttachment,
       hasActions: notificationWithDeepLink.hasActions,
       customSound: notificationWithDeepLink.customSound,
+      isGroupSummary: false,
     );
 
     // For daily/weekly notifications with a specific time, use zonedSchedule with matchDateTimeComponents
@@ -681,12 +694,15 @@ class NotificationManager {
     AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       model.channelId,
       model.channelId.toUpperCase(),
+      channelDescription: 'Progress notifications for ${model.channelId}',
       importance: Importance.low,
       priority: Priority.low,
       onlyAlertOnce: true,
       showProgress: true,
       maxProgress: model.maxProgress!,
       progress: model.currentProgress!,
+      setAsGroupSummary: false,
+      autoCancel: true,
     );
 
     DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -712,8 +728,14 @@ class NotificationManager {
 
   /// Creates a group of notifications with a summary.
   ///
-  /// Converts the list of [notifications] to models and calls
-  /// [showGroupedNotifications] to display them.
+  /// Converts the list of [notifications] to models, ensures each notification
+  /// has the correct groupKey set, and calls [showGroupedNotifications] to display them.
+  ///
+  /// This is a convenience method that handles setting the groupKey on each notification
+  /// and creating both the individual notifications and the summary notification.
+  ///
+  /// For Android, this creates a proper expandable notification group.
+  /// For iOS, this creates notifications that are visually grouped together.
   Future<void> createGroupNotification({
     required String groupKey,
     required String channelId,
@@ -721,8 +743,10 @@ class NotificationManager {
     required String groupSummary,
     required List<NotificationBuilder> notifications,
   }) async {
+    // Convert builders to models
     List<NotificationModel> models =
         notifications.map((builder) => builder.model).toList();
+
     return await showGroupedNotifications(
       groupKey: groupKey,
       groupChannelId: channelId,
@@ -736,6 +760,15 @@ class NotificationManager {
   ///
   /// Displays multiple related notifications as a group with a summary notification
   /// on platforms that support it (primarily Android).
+  ///
+  /// On Android, this creates a summary notification first (with setAsGroupSummary=true)
+  /// and then adds individual notifications to the group (with setAsGroupSummary=false).
+  /// All notifications share the same groupKey to ensure they appear together.
+  ///
+  /// The summary notification uses InboxStyle to display a list of notification titles
+  /// and a count of how many notifications are in the group.
+  ///
+  /// On iOS, notifications are grouped using the threadIdentifier parameter.
   Future<void> showGroupedNotifications({
     required String groupKey,
     required String groupChannelId,
@@ -749,15 +782,59 @@ class NotificationManager {
       return;
     }
 
+    // Generate a unique ID for the summary notification based on the group key
+    // This avoids conflicts with other notifications and ensures consistency
+    final summaryId = groupKey.hashCode;
+
+    if (Platform.isAndroid) {
+      // For Android, we need to show the summary notification first
+      // This ensures the group container exists before adding individual notifications
+      List<String> lines = notifications.map((n) => n.title).toList();
+
+      AndroidNotificationDetails summaryDetails = AndroidNotificationDetails(
+        groupChannelId,
+        groupChannelId.toUpperCase(),
+        channelDescription: 'Group notifications for $groupChannelId',
+        importance: Importance.high,
+        priority: Priority.high,
+        groupKey: groupKey,
+        setAsGroupSummary: true,
+        // Use InboxStyle for better group presentation
+        styleInformation: InboxStyleInformation(
+          lines,
+          contentTitle: groupTitle,
+          summaryText: '${notifications.length} notifications',
+        ),
+      );
+
+      NotificationDetails summaryNotificationDetails = NotificationDetails(
+        android: summaryDetails,
+      );
+
+      // Show the summary notification first
+      await _flutterLocalNotificationsPlugin.show(
+        summaryId,
+        groupTitle,
+        groupSummary,
+        summaryNotificationDetails,
+      );
+    }
+
     // Create individual notifications
     for (final notification in notifications) {
+      // Use the notification as-is since groupKey is now handled at the platform level
+      final notificationWithGroup = notification;
+
       AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
         groupChannelId,
         groupChannelId.toUpperCase(),
+        channelDescription: 'Individual notifications for $groupChannelId',
         importance: Importance.high,
         priority: Priority.high,
         groupKey: groupKey,
         setAsGroupSummary: false,
+        // Ensure autoCancel is true to remove notifications when tapped
+        autoCancel: true,
       );
 
       DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
@@ -774,41 +851,175 @@ class NotificationManager {
       );
 
       await _flutterLocalNotificationsPlugin.show(
-        notification.id,
-        notification.title,
-        notification.body,
+        notificationWithGroup.id,
+        notificationWithGroup.title,
+        notificationWithGroup.body,
         details,
-        payload: notification.toPayload(),
+        payload: notificationWithGroup.toPayload(),
       );
     }
 
-    // Create summary notification for Android
-    if (Platform.isAndroid) {
-      AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        groupChannelId,
-        groupChannelId.toUpperCase(),
-        importance: Importance.high,
-        priority: Priority.high,
-        groupKey: groupKey,
-        setAsGroupSummary: true,
-      );
-
-      NotificationDetails details = NotificationDetails(
-        android: androidDetails,
-      );
-
-      await _flutterLocalNotificationsPlugin.show(
-        0, // Use a unique ID for the summary
-        groupTitle,
-        groupSummary,
-        details,
-      );
-    }
+    // For iOS, threading is handled automatically via the threadIdentifier
   }
 
   //----------------------------------------------------------------------------
   // NOTIFICATION MANAGEMENT METHODS
   //----------------------------------------------------------------------------
+
+  /// Shows a test progress notification with hardcoded dummy data.
+  ///
+  /// This is a simplified method for testing progress notifications directly
+  /// without needing to configure all the parameters.
+  ///
+  /// [channelId] The channel ID to use for the notification
+  /// [progress] Current progress value (0-100)
+  /// [maxProgress] Maximum progress value (default: 100)
+  Future<void> showTestProgressNotification(
+    String channelId, {
+    int progress = 0,
+    int maxProgress = 100,
+  }) async {
+    // Check prerequisites
+    final canShow = await _checkNotificationPrerequisites();
+    if (!canShow) {
+      debugPrint(
+        'Cannot show test progress notification: prerequisites not met',
+      );
+      return;
+    }
+
+    // Use a fixed ID for the progress notification so we update the same one
+    const int progressNotificationId = 1000;
+
+    // Create simple notification details with progress bar
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId,
+        channelId.toUpperCase(),
+        showProgress: true,
+        maxProgress: maxProgress,
+        progress: progress,
+        onlyAlertOnce: true, // Prevents sound/vibration on updates
+      ),
+      iOS: const DarwinNotificationDetails(
+        // iOS doesn't support native progress bars in notifications
+      ),
+    );
+
+    // Determine title and body based on progress
+    final bool isComplete = progress >= maxProgress;
+    final String title = isComplete ? 'Download Complete' : 'Downloading...';
+    final String body =
+        isComplete
+            ? 'Your file is ready'
+            : 'Progress: ${(progress / maxProgress * 100).round()}%';
+
+    // Show/update the notification with the fixed ID
+    await _flutterLocalNotificationsPlugin.show(
+      progressNotificationId,
+      title,
+      body,
+      details,
+    );
+  }
+
+  /// Shows a test group notification with hardcoded dummy data.
+  ///
+  /// This is a simplified method for testing grouped notifications directly
+  /// without needing to configure all the parameters.
+  ///
+  /// [channelId] The channel ID to use for the notifications
+  Future<void> showTestGroupNotification(String channelId) async {
+    const String groupKey = 'com.timora.test.group';
+
+    // Check prerequisites
+    final canShow = await _checkNotificationPrerequisites();
+    if (!canShow) {
+      debugPrint('Cannot show test group notification: prerequisites not met');
+      return;
+    }
+
+    // Generate a unique ID for the summary notification
+    final summaryId = groupKey.hashCode;
+
+    // Create individual notification data
+    final List<Map<String, dynamic>> notifications = [
+      {
+        'id': DateTime.now().millisecondsSinceEpoch % 10000,
+        'title': 'First Message',
+        'body': 'This is the first message in the group',
+      },
+      {
+        'id': DateTime.now().millisecondsSinceEpoch % 10000 + 1,
+        'title': 'Second Message',
+        'body': 'This is the second message with more details',
+      },
+      {
+        'id': DateTime.now().millisecondsSinceEpoch % 10000 + 2,
+        'title': 'Third Message',
+        'body': 'This is the third message in the sequence',
+      },
+    ];
+
+    if (Platform.isAndroid) {
+      // For Android, show the summary notification first
+      List<String> lines =
+          notifications.map((n) => n['title'] as String).toList();
+
+      AndroidNotificationDetails summaryDetails = AndroidNotificationDetails(
+        channelId,
+        channelId.toUpperCase(),
+        channelDescription: 'Group notifications for $channelId',
+        importance: Importance.high,
+        priority: Priority.high,
+        groupKey: groupKey,
+        setAsGroupSummary: true,
+        autoCancel: true,
+        // Use InboxStyle for better group presentation
+        styleInformation: InboxStyleInformation(
+          lines,
+          contentTitle: 'Message Group',
+          summaryText: '${notifications.length} new messages',
+        ),
+      );
+
+      NotificationDetails summaryNotificationDetails = NotificationDetails(
+        android: summaryDetails,
+      );
+
+      // Show the summary notification
+      await _flutterLocalNotificationsPlugin.show(
+        summaryId,
+        'Message Group',
+        '${notifications.length} new messages',
+        summaryNotificationDetails,
+      );
+    }
+
+    // Show individual notifications for both Android and iOS
+    for (final notification in notifications) {
+      final details = NotificationDetails(
+        // Android configuration
+        android: AndroidNotificationDetails(
+          channelId,
+          channelId.toUpperCase(),
+          groupKey: groupKey,
+          setAsGroupSummary: false,
+        ),
+        // iOS configuration
+        iOS: DarwinNotificationDetails(
+          threadIdentifier: groupKey, // This groups notifications on iOS
+        ),
+      );
+
+      await _flutterLocalNotificationsPlugin.show(
+        notification['id'] as int,
+        notification['title'] as String,
+        notification['body'] as String,
+        details,
+      );
+    }
+  }
 
   /// Cancels a specific notification by ID.
   ///

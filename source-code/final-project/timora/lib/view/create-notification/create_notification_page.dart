@@ -107,11 +107,10 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
   // Show progress notification with UI feedback
   Future<void> _showProgressNotification() async {
     // Show initial notification with 0% progress
-    var builder = _controller.createProgressNotification(
+    await _controller.showTestProgressNotification(
       progress: 0,
       maxProgress: 100,
     );
-    await builder.show();
 
     // Update progress every second
     for (int progress = 10; progress <= 100; progress += 10) {
@@ -119,11 +118,10 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
       await Future.delayed(const Duration(seconds: 1));
 
       // Update the notification with new progress
-      builder = _controller.createProgressNotification(
+      await _controller.showTestProgressNotification(
         progress: progress,
         maxProgress: 100,
       );
-      await builder.show();
     }
 
     if (mounted) {
@@ -135,17 +133,7 @@ class _CreateNotificationPageState extends State<CreateNotificationPage> {
 
   // Show group notification with UI feedback
   Future<void> _showGroupNotification() async {
-    const String groupKey = 'com.timora.notification.experiments';
-    final notifications = await _controller.createGroupNotificationBuilders();
-
-    // Create the group
-    await _controller.notificationManager.createGroupNotification(
-      groupKey: groupKey,
-      channelId: _controller.value.channelId,
-      groupTitle: 'Message Group',
-      groupSummary: '${notifications.length} new messages',
-      notifications: notifications,
-    );
+    await _controller.showTestGroupNotification();
 
     if (mounted) {
       ScaffoldMessenger.of(
